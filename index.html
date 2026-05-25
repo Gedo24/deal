@@ -3,116 +3,169 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Делёж имущества</title>
-
-<!-- PWA настройки -->
+<title>Розрахунок долей</title>
 <link rel="manifest" href="manifest.json">
-
 <style>
 body {
-    font-family: Arial;
+    font-family: Arial, Helvetica, sans-serif;
     margin: 0;
     padding: 15px;
     background: #f2f2f2;
 }
-
 .container {
     background: white;
     padding: 15px;
     border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-
+h2 {
+    text-align: center;
+    margin-top: 0;
+}
 input {
     width: 100%;
-    padding: 10px;
-    margin: 5px 0;
+    padding: 12px;
+    margin: 8px 0;
     font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-sizing: border-box;
 }
-
 button {
     width: 100%;
-    padding: 12px;
-    margin-top: 10px;
+    padding: 14px;
+    margin-top: 12px;
     border: none;
     border-radius: 10px;
-    font-size: 16px;
+    font-size: 17px;
+    font-weight: bold;
 }
-
 .calc { background: #007AFF; color: white; }
 .reset { background: #ff3b30; color: white; }
-
 .result {
-    margin-top: 15px;
+    margin-top: 20px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 10px;
     white-space: pre-line;
+    line-height: 1.5;
+    font-size: 16px;
 }
+.error { color: #ff3b30; font-weight: bold; }
+.success { color: #34c759; font-weight: bold; }
 </style>
 </head>
-
 <body>
-
 <div class="container">
+    <h2>Розрахунок долей</h2>
+    
+    <input id="total" type="number" step="0.01" placeholder="Загальна сума">
+    <input id="p1" type="number" step="0.01" placeholder="Сторона 1">
+    <input id="p2" type="number" step="0.01" placeholder="Сторона 2">
+    <input id="p3" type="number" step="0.01" placeholder="Сторона 3">
+    <input id="p4" type="number" step="0.01" placeholder="Сторона 4">
+    <input id="p5" type="number" step="0.01" placeholder="Сторона 5">
+    <input id="p6" type="number" step="0.01" placeholder="Сторона 6">
+    <input id="p7" type="number" step="0.01" placeholder="Сторона 7">
+    <input id="p8" type="number" step="0.01" placeholder="Сторона 8">
+    <input id="p9" type="number" step="0.01" placeholder="Сторона 9">
+    <input id="p10" type="number" step="0.01" placeholder="Сторона 10">
 
-<h2>Делёж имущества</h2>
+    <button class="calc" onclick="calc()">Розрахувати</button>
+    <button class="reset" onclick="resetAll()">Сброс</button>
 
-<input id="total" type="number" placeholder="Сумма сделки">
-
-<input id="p1" type="number" placeholder="Сторона 1">
-<input id="p2" type="number" placeholder="Сторона 2">
-<input id="p3" type="number" placeholder="Сторона 3">
-<input id="p4" type="number" placeholder="Сторона 4">
-<input id="p5" type="number" placeholder="Сторона 5">
-<input id="p6" type="number" placeholder="Сторона 6">
-<input id="p7" type="number" placeholder="Сторона 7">
-<input id="p8" type="number" placeholder="Сторона 8">
-<input id="p9" type="number" placeholder="Сторона 9">
-<input id="p10" type="number" placeholder="Сторона 10">
-
-<button class="calc" onclick="calc()">Рассчитать</button>
-<button class="reset" onclick="resetAll()">Сброс</button>
-
-<div class="result" id="result"></div>
-
+    <div class="result" id="result"></div>
 </div>
 
 <script>
+// Функция для нахождения НОД
+function gcd(a, b) {
+    return b ? gcd(b, a % b) : a;
+}
+
+// Приведение дробей к общему знаменателю
+function toCommonDenominator(fractions) {
+    if (fractions.length === 0) return [];
+    
+    let lcm = fractions[0].den;
+    for (let i = 1; i < fractions.length; i++) {
+        lcm = lcm * fractions[i].den / gcd(lcm, fractions[i].den);
+    }
+    
+    return fractions.map(f => ({
+        num: Math.round(f.num * (lcm / f.den)),
+        den: lcm,
+        original: `${f.num}/${f.den}`
+    }));
+}
+
 function calc() {
-    let total = +document.getElementById("total").value;
+    const totalInput = parseFloat(document.getElementById("total").value) || 0;
     let sum = 0;
     let values = [];
 
     for (let i = 1; i <= 10; i++) {
-        let v = document.getElementById("p"+i).value;
-        if (v !== "") {
-            v = +v;
-            values.push(v);
-            sum += v;
+        let val = document.getElementById("p" + i).value;
+        if (val !== "") {
+            val = parseFloat(val);
+            values.push(val);
+            sum += val;
         }
     }
 
-    let out = "";
+    const resultDiv = document.getElementById("result");
+    const tolerance = 0.009; // для копеек
 
-    if (sum < total) out = "❌ Сумма меньше общей стоимости";
-    else if (sum > total) out = "❌ Сумма больше общей стоимости";
-    else {
-        out = "✅ Результат:\n\n";
-        for (let i = 0; i < values.length; i++) {
-            let p = values[i] / total;
-            out += `Сторона ${i+1}\n${p.toFixed(4)} | ${(p*100).toFixed(2)}%\n\n`;
+    if (Math.abs(sum - totalInput) > tolerance) {
+        if (sum > totalInput) {
+            resultDiv.innerHTML = `<span class="error">❌ Сума більше загальної вартості</span>`;
+        } else {
+            resultDiv.innerHTML = `<span class="error">❌ Сума менше загальної вартості</span>`;
         }
+        return;
     }
 
-    document.getElementById("result").innerText = out;
+    if (totalInput <= 0) {
+        resultDiv.innerHTML = `<span class="error">❌ Вкажіть загальну суму</span>`;
+        return;
+    }
+
+    // Преобразуем в дроби
+    let fractions = values.map(v => {
+        let num = Math.round(v * 10000); // высокая точность
+        let den = Math.round(totalInput * 10000);
+        let g = gcd(num, den);
+        return { num: num / g, den: den / g };
+    });
+
+    const common = toCommonDenominator(fractions);
+
+    let out = `<span class="success">✅ Результат:</span>\n\n`;
+
+    for (let i = 0; i < common.length; i++) {
+        const f = common[i];
+        const percent = (values[i] / totalInput * 100).toFixed(2);
+        out += `Сторона ${i+1}: ${f.original} `;
+        
+        if (f.original !== `${f.num}/${f.den}`) {
+            out += `(${f.num}/${f.den}) `;
+        }
+        out += `— ${percent}%\n`;
+    }
+
+    // Итоговая сумма
+    out += `\n${common.map(f => f.num).join(' + ')} = ${common[0].den}/${common[0].den} (100%)`;
+
+    resultDiv.innerHTML = out;
 }
 
 function resetAll() {
     document.getElementById("total").value = "";
     for (let i = 1; i <= 10; i++) {
-        document.getElementById("p"+i).value = "";
+        document.getElementById("p" + i).value = "";
     }
-    document.getElementById("result").innerText = "";
+    document.getElementById("result").innerHTML = "";
 }
 </script>
-
 </body>
 </html>
