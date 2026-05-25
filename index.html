@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Делёж имущества</title>
+
+<!-- PWA настройки -->
+<link rel="manifest" href="manifest.json">
+
+<style>
+body {
+    font-family: Arial;
+    margin: 0;
+    padding: 15px;
+    background: #f2f2f2;
+}
+
+.container {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    font-size: 16px;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+.calc { background: #007AFF; color: white; }
+.reset { background: #ff3b30; color: white; }
+
+.result {
+    margin-top: 15px;
+    white-space: pre-line;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Делёж имущества</h2>
+
+<input id="total" type="number" placeholder="Сумма сделки">
+
+<input id="p1" type="number" placeholder="Сторона 1">
+<input id="p2" type="number" placeholder="Сторона 2">
+<input id="p3" type="number" placeholder="Сторона 3">
+<input id="p4" type="number" placeholder="Сторона 4">
+<input id="p5" type="number" placeholder="Сторона 5">
+<input id="p6" type="number" placeholder="Сторона 6">
+<input id="p7" type="number" placeholder="Сторона 7">
+<input id="p8" type="number" placeholder="Сторона 8">
+<input id="p9" type="number" placeholder="Сторона 9">
+<input id="p10" type="number" placeholder="Сторона 10">
+
+<button class="calc" onclick="calc()">Рассчитать</button>
+<button class="reset" onclick="resetAll()">Сброс</button>
+
+<div class="result" id="result"></div>
+
+</div>
+
+<script>
+function calc() {
+    let total = +document.getElementById("total").value;
+    let sum = 0;
+    let values = [];
+
+    for (let i = 1; i <= 10; i++) {
+        let v = document.getElementById("p"+i).value;
+        if (v !== "") {
+            v = +v;
+            values.push(v);
+            sum += v;
+        }
+    }
+
+    let out = "";
+
+    if (sum < total) out = "❌ Сумма меньше общей стоимости";
+    else if (sum > total) out = "❌ Сумма больше общей стоимости";
+    else {
+        out = "✅ Результат:\n\n";
+        for (let i = 0; i < values.length; i++) {
+            let p = values[i] / total;
+            out += `Сторона ${i+1}\n${p.toFixed(4)} | ${(p*100).toFixed(2)}%\n\n`;
+        }
+    }
+
+    document.getElementById("result").innerText = out;
+}
+
+function resetAll() {
+    document.getElementById("total").value = "";
+    for (let i = 1; i <= 10; i++) {
+        document.getElementById("p"+i).value = "";
+    }
+    document.getElementById("result").innerText = "";
+}
+</script>
+
+</body>
+</html>
